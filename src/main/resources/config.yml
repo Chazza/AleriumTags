@@ -1,0 +1,17 @@
+groups:
+  group1:
+    refreshInterval: 30
+    priority: 0
+    lines:
+      - 'Name: %player_name%'
+      - '%vault_rank%'
+  group2:
+    refreshInterval: 30
+    priority: 1
+    lines:
+      - '&cName: %player_name%'
+      - '%vault_rank%'
+
+messages:
+  noPermission: '&cYou don''t have the permission for execute this command'
+  reloaded: '&aPlugin reloaded'

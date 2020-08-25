@@ -1,0 +1,8 @@
+name: AleriumTags
+author: xQuickGlare
+version: ${project.version}
+main: io.alerium.tags.TagsPlugin
+depend: [MultiLineAPI]
+commands: 
+  tagsreload:
+    description: This command reloads the plugin
