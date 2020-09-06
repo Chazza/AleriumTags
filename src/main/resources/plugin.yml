@@ -2,7 +2,7 @@ name: AleriumTags
 author: xQuickGlare
 version: ${project.version}
 main: io.alerium.tags.TagsPlugin
-depend: [MultiLineAPI]
+depend: [ProtocolLib]
 commands: 
   tagsreload:
     description: This command reloads the plugin

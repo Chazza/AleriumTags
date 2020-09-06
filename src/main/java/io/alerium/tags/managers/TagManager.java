@@ -3,10 +3,9 @@ package io.alerium.tags.managers;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.alerium.tags.TagsPlugin;
-import io.alerium.tags.objects.MultilineTagController;
-import io.alerium.tags.objects.MultilineTagLine;
 import io.alerium.tags.objects.Tag;
-import net.iso2013.mlapi.api.tag.TagController;
+import io.alerium.tags.objects.TagGroup;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -16,29 +15,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class TagManager {
     
     private final TagsPlugin plugin = TagsPlugin.getInstance();
     
-    private final Map<String, Tag> tags = new HashMap<>();
+    @Getter private final Map<String, Tag> tags = new HashMap<>();
     private final Cache<UUID, String> tagCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
 
-    private final Map<UUID, List<TagController.TagLine>> playerTags = new HashMap<>();
-
-    private MultilineTagController controller;
+    @Getter private final Map<UUID, TagGroup> tagGroups = new HashMap<>();
+    private final Map<UUID, List<String>> playerTags = new HashMap<>();
     
     /**
      * This method enables the TagManager
      */
     public void enable() {
         loadTags();
-        
-        controller = new MultilineTagController();
-        plugin.getMultiLineAPI().addDefaultTagController(controller);
+        Bukkit.getOnlinePlayers().forEach(this::spawnTag);
     }
 
     /**
@@ -50,7 +45,7 @@ public class TagManager {
         tagCache.invalidateAll();
         
         loadTags();
-        Bukkit.getOnlinePlayers().forEach(plugin.getMultiLineAPI()::update);
+        Bukkit.getOnlinePlayers().forEach(this::spawnTag);
     }
     
     /**
@@ -71,12 +66,45 @@ public class TagManager {
     }
 
     /**
+     * This method spawns a Tag of a Player
+     * @param player The Player
+     */
+    public void spawnTag(Player player) {
+        TagGroup group = tagGroups.get(player.getUniqueId());
+        if (group == null) {
+            group = new TagGroup(player.getUniqueId());
+            tagGroups.put(player.getUniqueId(), group);
+        }
+        
+        if (playerTags.containsKey(player.getUniqueId())) {
+            group.spawnTag(playerTags.get(player.getUniqueId()));
+            return;
+        }
+        
+        Tag tag = plugin.getTagManager().getTag(player);
+        if (tag != null)
+            group.spawnTag(tag.getTexts());
+    }
+
+    /**
+     * This method gets the TagGroup of a Player
+     * @param uuid The UUID of the Player
+     * @return The TagGroup
+     */
+    public TagGroup getTagGroup(UUID uuid) {
+        return tagGroups.get(uuid);
+    }
+    
+    /**
      * This method sets a personalized Tag for a Player
      * @param player The UUID of the Player
      * @param tags A List of String(s)
      */
     public void setPlayerTag(UUID player, List<String> tags) {
-        playerTags.put(player, tags.stream().map(MultilineTagLine::new).collect(Collectors.toList()));
+        playerTags.put(player, tags);
+        
+        TagGroup group = tagGroups.get(player);
+        group.spawnTag(tags);
     }
 
     /**
@@ -90,9 +118,9 @@ public class TagManager {
     /**
      * This method gets the personalized Tag of a Player
      * @param player The UUID of the Player
-     * @return A List of TagLine(s)
+     * @return A List of String(s)
      */
-    public List<TagController.TagLine> getPlayerTag(UUID player) {
+    public List<String> getPlayerTag(UUID player) {
         return playerTags.get(player);
     }
 
@@ -101,7 +129,7 @@ public class TagManager {
      * @param player The Player
      * @return The Tag of this Player
      */
-    public Tag getTag(Player player) {
+        public Tag getTag(Player player) {
         String id = tagCache.getIfPresent(player.getUniqueId());
         if (id == null) {
             id = getTagOf(player);

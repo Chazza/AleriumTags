@@ -1,12 +1,9 @@
 package io.alerium.tags.api;
 
 import io.alerium.tags.TagsPlugin;
-import io.alerium.tags.objects.MultilineTagLine;
-import net.iso2013.mlapi.api.tag.TagController;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class TagsAPI {
 
@@ -38,13 +35,7 @@ public final class TagsAPI {
      * @return The List of String(s) with the tag, null if not found
      */
     public static List<String> getPlayerTag(Player player) {
-        List<TagController.TagLine> lines = plugin.getTagManager().getPlayerTag(player.getUniqueId());
-        if (lines == null)
-            return null;
-        
-        return lines.stream()
-                .map(line -> ((MultilineTagLine) line).getText())
-                .collect(Collectors.toList());
+        return plugin.getTagManager().getPlayerTag(player.getUniqueId());
     }
     
 }
