@@ -6,9 +6,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 public class PlayerListener implements Listener {
     
@@ -17,7 +21,12 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getTagManager().spawnTag(player), 1);
+        setupScoreboard(player);
+        
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getTagManager().spawnTag(player);
+            plugin.getTagManager().restoreTags(player);
+        }, 1);
     }
     
     @EventHandler
@@ -25,7 +34,7 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         
         plugin.getTagManager().removePlayerTag(player.getUniqueId());
-        plugin.getTagManager().getTagGroup(player.getUniqueId()).despawn();
+        plugin.getTagManager().removeTag(player);
     }
     
     @EventHandler
@@ -35,6 +44,35 @@ public class PlayerListener implements Listener {
         
         group.despawn(event.getFrom());
         plugin.getTagManager().spawnTag(player);
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        TagGroup group = plugin.getTagManager().getTagGroup(player.getUniqueId());
+
+        group.despawn();
+    }
+    
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        plugin.getTagManager().spawnTag(player);
+    }
+    
+    private void setupScoreboard(Player player) {
+        Scoreboard scoreboard = player.getScoreboard();
+        Team team = scoreboard.getTeam("AleriumTags");
+        if (team == null) {
+            team = scoreboard.registerNewTeam("AleriumTags");
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+
+            for (Player p : Bukkit.getOnlinePlayers())
+                team.addEntry(p.getName());
+            
+        }
+
+        team.addEntry(player.getName());
     }
     
 }

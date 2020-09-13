@@ -86,6 +86,32 @@ public class TagManager {
             group.spawnTag(tag.getTexts());
     }
 
+    public void removeTag(Player player) {
+        TagGroup group = getTagGroup(player.getUniqueId());
+        if (group == null)
+            return;
+        
+        group.despawn();
+        tagGroups.remove(player.getUniqueId());
+    }
+    
+    /**
+     * This method spawns a Tag for a Player
+     * @param player The Player
+     */
+    public void restoreTags(Player player) {
+        for (Player worldPlayer : player.getWorld().getPlayers()) {
+            if (worldPlayer == player)
+                continue;
+            
+            TagGroup group = getTagGroup(worldPlayer.getUniqueId());
+            if (group == null)
+                continue;
+            
+            group.spawnTag(player);
+        }
+    }
+    
     /**
      * This method gets the TagGroup of a Player
      * @param uuid The UUID of the Player

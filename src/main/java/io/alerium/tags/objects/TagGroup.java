@@ -45,6 +45,20 @@ public class TagGroup {
     }
 
     /**
+     * This method spawns the Tag for a Player
+     * @param player The Player
+     */
+    public void spawnTag(Player player) {
+        List<AbstractPacket> packets = new ArrayList<>();
+        for (TagEntity entity : entities) {
+            packets.add(entity.spawnEntity(entity.getX(), entity.getY(), entity.getZ()));
+            packets.add(entity.updateEntityName(entity.getName()));
+        }
+        
+        packets.forEach(packet -> packet.sendPacket(player));
+    }
+
+    /**
      * This method updates the text on the TagGroup
      * @param texts The text to display
      */

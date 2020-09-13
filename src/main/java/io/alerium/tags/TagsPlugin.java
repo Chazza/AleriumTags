@@ -13,6 +13,7 @@ import io.alerium.tags.hooks.PlaceholderHook;
 import io.alerium.tags.listeners.PlayerListener;
 import io.alerium.tags.managers.TagManager;
 import io.alerium.tags.objects.TagGroup;
+import io.alerium.tags.utils.NMSUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +29,11 @@ public class TagsPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        
+        if (!NMSUtil.setup()) {
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
         
         saveDefaultConfig();
         setupDepends();
@@ -52,7 +58,8 @@ public class TagsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        tagManager.getTagGroups().values().forEach(TagGroup::despawn);
+        if (tagManager != null && !Bukkit.isStopping())
+            tagManager.getTagGroups().values().forEach(TagGroup::despawn);
     }
 
     /**

@@ -14,10 +14,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor @Getter
 public class TagEntity {
     
-    @Getter private final int id;
+    private final int id;
+    
+    private String name;
     
     private double x;
     private double y;
@@ -65,6 +67,8 @@ public class TagEntity {
         meta.add(new WrappedWatchableObject(new WrappedDataWatcher.WrappedDataWatcherObject(3, WrappedDataWatcher.Registry.get(Boolean.class)), true));
         meta.add(new WrappedWatchableObject(new WrappedDataWatcher.WrappedDataWatcherObject(5, WrappedDataWatcher.Registry.get(Boolean.class)), true));
         packet.setMetadata(meta);
+        
+        this.name = name;
         
         return packet;
     }
